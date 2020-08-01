@@ -10,7 +10,7 @@ jobs:
 
       - image: circleci/postgres:alpine
         environment:
-          POSTGRES_DB: default_test
+          POSTGRES_DB: default
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
 
@@ -41,6 +41,7 @@ jobs:
       - run:
           name: Setup Laravel testing environment
           command: |
+            cp .env.testing .env
             composer install -n --prefer-dist
             php artisan migrate
 
