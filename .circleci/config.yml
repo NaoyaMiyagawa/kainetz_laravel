@@ -10,7 +10,7 @@ jobs:
 
       - image: circleci/postgres:alpine
         environment:
-          POSTGRES_DB: default_test
+          POSTGRES_DB: default
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
 
