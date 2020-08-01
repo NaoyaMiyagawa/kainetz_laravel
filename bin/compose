@@ -1,0 +1,29 @@
+#!/bin/bash
+
+COMMAND=$1
+
+case $COMMAND in
+  "ps" )
+    docker-compose ps ;;
+
+  "up" )
+    docker-compose up -d ;;
+  "down" )
+    docker-compose down ;;
+
+  "start" )
+    docker-compose start ;;
+  "stop" )
+    docker-compose stop ;;
+
+  "exec" )
+    docker-compose exec ${@:2} ;;
+
+  "init-db" )
+    docker-compose exec app php artisan migrate:fresh
+    docker-compose exec app php artisan db:seed
+    ;;
+
+  * )
+    printf "\e[35m${COMMAND}\e[m is not valid docker-compose command!\n" && exit 1 ;;
+esac
