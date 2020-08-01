@@ -1,0 +1,39 @@
+version: "3"
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+services:
+  # ----------------------------------------------------------------------------
+  # PHP - Apache
+  web:
+    build: ${DOCKER_PATH_WEB}
+    container_name: ${COMPOSE_PROJECT_NAME}_web
+    volumes:
+      - ${DOCKER_PATH_WEB}/php.ini:/usr/local/etc/php/php.ini
+      - ${DOCKER_PATH_WEB}:/var/www/html:cached
+    ports:
+      - ${PORT_HTTP}:80
+      - ${PORT_HTTPS}:443
+    networks:
+      - frontend
+      - backend
+
+  # ----------------------------------------------------------------------------
+  # PostgreSQL
+  db:
+    build: ${DOCKER_PATH_DB}
+    container_name: ${COMPOSE_PROJECT_NAME}_db
+    volumes:
+      - ${DOCKER_PATH_DB}/.data:/var/lib/postgresql/data:delegated
+    ports:
+      - ${DB_PORT}:5432
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - backend
