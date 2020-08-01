@@ -1,0 +1,101 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/php:7.4-apache-node-browsers
+        environment:
+          APP_ENV: testing
+          REVIEWDOG_VERSION: "0.10.0"
+
+      - image: circleci/postgres:alpine
+        environment:
+          POSTGRES_DB: default_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+    working_directory: ~/laravel
+
+    steps:
+      - checkout
+
+      # ----------------------------------------------------------------------------
+      # Install modules
+
+      - run:
+          name: Install required modules
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y zlib1g-dev libpq-dev libzip-dev unzip
+            sudo docker-php-ext-install zip pdo pdo_pgsql pgsql
+            sudo apt-get install -y openssl
+
+      # ----------------------------------------------------------------------------
+      # composer
+
+      - restore_cache:
+          keys:
+            - composer-v1-{{ checksum "composer.json" }}
+            - composer-v1-
+
+      - run:
+          name: Setup Laravel testing environment
+          command: |
+            composer install -n --prefer-dist
+            php artisan migrate
+
+      - save_cache:
+          key: composer-v1-{{ checksum "composer.json" }}
+          paths:
+            - vendor
+
+      # ----------------------------------------------------------------------------
+      # Reviedog
+
+      - run:
+          name: Install Reviewdog
+          command: "curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s v$REVIEWDOG_VERSION"
+
+      # ----------------------------------------------------------------------------
+      # Run PhpStan
+
+      - run:
+          name: Run PhpStan with Reviewdog
+          shell: /bin/sh
+          command: vendor/bin/phpstan analyse -c phpstan.neon --error-format raw --no-progress 2>&1 | ./bin/reviewdog -f=phpstan -reporter=github-pr-review -fail-on-error
+
+      # ----------------------------------------------------------------------------
+      # PHP Tests
+
+      - run:
+          name: Run Laravel Server
+          command: php artisan serve
+          background: true
+
+      - run:
+          name: Run Phpunit for Server-Side HTTP Requests & PHP Unit Testing
+          command: vendor/bin/phpunit -d memory_limit=2G
+
+      # ----------------------------------------------------------------------------
+      # PHP Code-Sniffer
+
+      - run:
+          name: Run PHP Code-Sniffer with Reviewdog
+          shell: /bin/sh
+          command: |
+            composer cs-check | ./bin/reviewdog -efm="%f:%l:%c: %m" -reporter=github-pr-review -fail-on-error
+
+      # ----------------------------------------------------------------------------
+      # Node周り
+
+      - restore_cache:
+          keys:
+            - node-v1-{{ checksum "package.json" }}
+            - node-v1-
+
+      - run: yarn install
+
+      - save_cache:
+          key: node-v1-{{ checksum "package.json" }}
+          paths:
+            - node_modules
