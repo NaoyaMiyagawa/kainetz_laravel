@@ -20,8 +20,8 @@ case $COMMAND in
     docker-compose exec ${@:2} ;;
 
   "init-db" )
-    docker-compose exec app php artisan migrate:fresh
-    docker-compose exec app php artisan db:seed
+    docker-compose exec web php artisan migrate:fresh
+    docker-compose exec web php artisan db:seed
     ;;
 
   * )

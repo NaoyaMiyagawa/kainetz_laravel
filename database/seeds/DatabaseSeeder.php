@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,6 +12,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // $this->call(UserSeeder::class);
+        # ----------------------------------------------
+        # 環境ごとでSeedの切り替え
+
+        $envName = Str::studly(App::Environment());
+
+        $seederClass = 'Seeds\\' . $envName . '\\DatabaseSeeder';
+
+        $this->call($seederClass);
     }
 }
