@@ -13,8 +13,8 @@ services:
     build: ${DOCKER_PATH_WEB}
     container_name: ${COMPOSE_PROJECT_NAME}_web
     volumes:
+      - .:/var/www/html:cached
       - ${DOCKER_PATH_WEB}/php.ini:/usr/local/etc/php/php.ini
-      - ${DOCKER_PATH_WEB}:/var/www/html:cached
     ports:
       - ${PORT_HTTP}:80
       - ${PORT_HTTPS}:443
