@@ -41,6 +41,7 @@ jobs:
       - run:
           name: Setup Laravel testing environment
           command: |
+            cp .env.testing .env
             composer install -n --prefer-dist
             php artisan migrate
 
