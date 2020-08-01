@@ -18,10 +18,12 @@ class Initial extends Migration
          */
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->text('loginid')->unique()->comment('ログインID');
             $table->text('name')->comment('ユーザー名');
             $table->text('password')->comment('パスワード'); // FSSO認証回避
             $table->rememberToken()->comment('Rememberトークン');
             $table->integer('employee_code')->unique()->comment('社員番号');
+            $table->text('slackid')->nullable()->comment('SlackID');
             $table->boolean('admin_flg')->default(false)->comment('管理者フラグ');
             $table->boolean('retire_flg')->default(false)->comment('退職フラグ');
 
@@ -58,6 +60,8 @@ class Initial extends Migration
 
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index(['account_title_id']);
         });
 
         /**
@@ -67,7 +71,6 @@ class Initial extends Migration
             $table->id();
             $table->year('year')->comment('対象年');
             $table->integer('month')->comment('対象月');
-            $table->boolean('year_end_flg')->default(false)->comment('期末フラグ');
             $table->boolean('announce_flg')->default(false)->comment('通知フラグ');
             $table->date('closed_date')->nullable()->comment('締め日');
             $table->integer('status')->comment('対象月状態');
@@ -106,7 +109,7 @@ class Initial extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->index(['user_id', 'target_month_id']);
+            $table->index(['user_id', 'target_month_id', 'account_title_id', 'transport_id']);
         });
 
         /**
@@ -115,9 +118,8 @@ class Initial extends Migration
         Schema::create('closing_notification_settings', function (Blueprint $table) {
             $table->id();
             $table->integer('month')->comment('対象月');
-            $table->integer('closing_date')->nullable()->comment('締め日');
-            $table->integer('notification_date')->nullable()->comment('通知日');
-
+            $table->date('closing_date')->nullable()->comment('締め日');
+            $table->date('notification_date')->nullable()->comment('通知日');
             $table->timestamps();
         });
     }
